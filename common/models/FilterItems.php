@@ -15,6 +15,8 @@ use Yii;
  */
 class FilterItems extends \yii\db\ActiveRecord
 {
+    public $hits;
+
     /**
      * {@inheritdoc}
      */

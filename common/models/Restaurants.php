@@ -2,7 +2,9 @@
 
 namespace common\models;
 
+use common\models\siteobject\BaseSiteObject;
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "restaurants".
@@ -16,7 +18,7 @@ use Yii;
  * @property int $price
  * @property string $cover_url
  */
-class Restaurants extends \yii\db\ActiveRecord
+class Restaurants extends BaseSiteObject
 {
     /**
      * {@inheritdoc}
