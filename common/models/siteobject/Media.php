@@ -16,9 +16,8 @@ class Media extends \yii\db\ActiveRecord
 {
 
     const THUMB_CONFIG = [
-        'width' => 100,
-        'height' => 100,
-        'quality' => 95
+        'width' => 2000,
+        'height' => 2000,
     ];
 
     /**
@@ -67,8 +66,8 @@ class Media extends \yii\db\ActiveRecord
                 $this->getSystemPath(),
                 $config['width'],
                 $config['height'],
-                EasyThumbnailImage::THUMBNAIL_OUTBOUND,
-                $config['quality']
+                EasyThumbnailImage::THUMBNAIL_INSET_BOX,
+                $config['quality'] ?? null,
             );
         } catch (\himiklab\thumbnail\FileNotFoundException $th) {
             return null;
