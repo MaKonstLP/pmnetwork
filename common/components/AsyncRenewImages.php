@@ -12,15 +12,15 @@ class AsyncRenewImages extends BaseObject implements \yii\queue\JobInterface
 	public  $item_id,
 		   	$type,
 		   	$dsn,
-		   	$watermark = '/var/www/pmnetwork/pmnetwork/frontend/web/img/watermark.png',
-		   	$imageHash = 'svadbanaprirode';
+		   	$watermark = '/var/www/pmnetwork/frontend/web/img/watermark.png',
+		   	$imageHash = 'birthdaypmn';
 
 	public function execute($queue) {
 		$connection = new \yii\db\Connection([
 		    'dsn' => $this->dsn,
-		    'username' => 'pmnetwork',
-		    'password' => 'P2t8wdBQbczLNnVT',
-		    'charset' => 'utf8mb4',
+		    'username' => 'root',
+		    'password' => 'Gkcfmdsop',
+		    'charset' => 'utf8',
 		]);
 		$connection->open();
 		Yii::$app->set('db', $connection);

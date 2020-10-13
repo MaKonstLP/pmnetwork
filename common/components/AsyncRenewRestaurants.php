@@ -13,8 +13,8 @@ class AsyncRenewRestaurants extends BaseObject implements \yii\queue\JobInterfac
 	public  $gorko_id,
 		   	$dsn,
 		   	$imageLoad,
-		   	$watermark = '/var/www/pmnetwork/pmnetwork/frontend/web/img/watermark.png',
-		   	$imageHash = 'svadbanaprirode';
+		   	$watermark = '/var/www/pmnetwork/frontend/web/img/watermark.png',
+		   	$imageHash = 'birthdaypmn';
 
 	public function execute($queue) {
 
@@ -27,8 +27,8 @@ class AsyncRenewRestaurants extends BaseObject implements \yii\queue\JobInterfac
 
 		    $connection = new \yii\db\Connection([
 			    'dsn' => $this->dsn,
-			    'username' => 'pmnetwork',
-			    'password' => 'P2t8wdBQbczLNnVT',
+			    'username' => 'root',
+			    'password' => 'Gkcfmdsop',
 			    'charset' => 'utf8',
 			]);
 			$connection->open();
@@ -140,6 +140,11 @@ class AsyncRenewRestaurants extends BaseObject implements \yii\queue\JobInterfac
 			    foreach ($response['covers'] as $key => $image) {
 					$imgModel = Images::find()->where(['gorko_id' => $image['id']])->one($connection);
 					$imgAttributes = [];
+
+					if($imgModel && ($imgModel->item_id != $restModel->id)) {
+						$imgModel->item_id = $restModel->id;
+						$imgModel->save();
+					}
 			    
 				    if(!$imgModel){
 				    	$imgModel = new Images();
@@ -226,6 +231,11 @@ class AsyncRenewRestaurants extends BaseObject implements \yii\queue\JobInterfac
 			    		foreach ($room['media'] as $key => $image) {
 							$imgModel = Images::find()->where(['gorko_id' => $image['id']])->one($connection);
 							$imgAttributes = [];
+
+							if($imgModel && ($imgModel->item_id != $roomModel->id)) {
+								$imgModel->item_id = $roomModel->id;
+								$imgModel->save();
+							}
 					    
 						    if(!$imgModel){
 						    	$imgModel = new Images();

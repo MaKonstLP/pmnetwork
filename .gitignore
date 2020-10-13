@@ -13,6 +13,7 @@ frontend/web/assets/*
 frontend/web/index-test.php
 frontend/web/index.php
 frontend/web/dist/*
+frontend/web/img/
 frontend/modules/*
 
 backend/modules/*

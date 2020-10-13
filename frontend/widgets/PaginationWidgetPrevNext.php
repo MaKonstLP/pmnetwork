@@ -42,7 +42,7 @@ class PaginationWidgetPrevNext extends Widget
 		            $buttons .= $this->renderPageButton($i, '', $i == $this->current ? '_active' : '');           
 		        }
     		}
-            $buttons .= ($this->total > 1 && $this->current < $this->total) ? '<div class="" data-listing-pagitem data-page-increase="1">Следующая</div>' : '';
+            $buttons .= ($this->total > 1 && $this->current < $this->total) ? '<div class="" data-listing-pagitem data-page-increase="1" data-target="pag_1">Следующая</div>' : '';
     		$buttons .= '</div>';
     		return $buttons;
     	}

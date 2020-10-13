@@ -3,6 +3,7 @@
 namespace common\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "slices".
@@ -52,5 +53,25 @@ class Slices extends \yii\db\ActiveRecord
             'text_top' => 'text_top',
             'text_bottom' => 'text_bottom',
         ];
+    }
+
+    public function getFilterParams()
+    {
+        return json_decode($this->params, true);
+    }
+
+    public function getFilterItem($filter_model) {
+        if(!($params = json_decode($this->params, true))) return null;
+        $filterAlias = array_key_first($params);
+        $filterItemValue =  $params[array_key_first($params)];
+        $filterItems = ArrayHelper::map($filter_model, 'alias', 'items')[$filterAlias] ?? null;
+
+        if(!$filterItems) return null;
+
+        $filterItem = current(array_filter($filterItems, function($filterItem) use ($filterItemValue) {
+            return $filterItem->value == $filterItemValue;
+        }));
+
+        return $filterItem;
     }
 }
