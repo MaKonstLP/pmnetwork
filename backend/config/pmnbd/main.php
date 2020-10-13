@@ -39,13 +39,6 @@ return [
             // this is the name of the session cookie used for login on the backend
             'name' => 'advanced-backend',
         ],
-        'db' => [
-            'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=localhost;dbname=pmn_bd',
-            'username' => 'root',
-            'password' => 'Gkcfmdsop',
-            'charset' => 'utf8',
-        ],
         'elasticsearch' => [
             'class' => 'yii\elasticsearch\Connection',
             'autodetectCluster' => false,
