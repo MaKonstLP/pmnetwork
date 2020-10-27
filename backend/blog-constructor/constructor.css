@@ -190,10 +190,6 @@ li {
   line-height: 1.8em;
 }
 
-.draft-save {
-  display: none;
-}
-
 /* Default state */
 .rc-checkbox {
   white-space: nowrap;
