@@ -3,7 +3,8 @@ $params = array_merge(
     require __DIR__ . '/../../../common/config/params.php',
     require __DIR__ . '/../../../common/config/params-local.php',
     require __DIR__ . '/../params.php',
-    require __DIR__ . '/../params-local.php'
+    require __DIR__ . '/../params-local.php',
+    \common\utility\SiteParamsHelper::getParamsForModule('svadbanaprirode')
 );
 Yii::setAlias('@module_web', '@backend/modules/svadbanaprirode/web');
 
@@ -67,8 +68,24 @@ return [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+            'suffix' => '/',
             'rules' => [
+                ['pattern' => '/update', 'route' => 'update/update'],
+                'media/<id:\d+>/resort/<sort:\d+>' => 'media/resort',
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'blog-blocks',
+                    'except' => ['delete', 'create', 'update'],
+                ],
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'blog-post-blocks',
+                    'extraPatterns' => [
+                        'POST sort' => 'sort',
+                    ]
+                ],
                 ['pattern'=>'/update','route'=>'update/update'],
+                '<controller>/<id:\d+>/<action>' => '<controller>/<action>',
             ],
         ],
     ],

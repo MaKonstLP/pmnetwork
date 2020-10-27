@@ -125,7 +125,7 @@ class BlogPost extends BaseSiteObject
      */
     public function getBlogPostBlocks()
     {
-        return $this->hasMany(\common\models\blog\BlogPostBlock::className(), ['blog_post_id' => 'id']);
+        return $this->hasMany(\common\models\blog\BlogPostBlock::className(), ['blog_post_id' => 'id'])->orderBy('sort');
     }
 
     /**

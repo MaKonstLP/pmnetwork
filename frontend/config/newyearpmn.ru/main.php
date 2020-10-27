@@ -3,7 +3,8 @@ $params = array_merge(
     require __DIR__ . '/../../../common/config/params.php',
     require __DIR__ . '/../../../common/config/params-local.php',
     require __DIR__ . '/../params.php',
-    require __DIR__ . '/../params-local.php'
+    require __DIR__ . '/../params-local.php',
+    \common\utility\SiteParamsHelper::getParamsForModule('gorko_ny')
 );
 
 return [
@@ -96,6 +97,9 @@ return [
                 ['pattern'=>'/ajax/form/','route'=>'form/send', 'suffix'=>'/'],
                 ['pattern'=>'/api/map_all/','route'=>'api/mapall', 'suffix'=>'/'],
                 ['pattern'=>'/privacy/','route'=>'static/privacy', 'suffix'=>'/'],
+                ['pattern'=>'/ajax/sendroom/','route'=>'form/room', 'suffix'=>'/'],
+                ['pattern'=>'/blog/<alias>/', 'route' => 'blog/post', 'suffix'=>'/'],
+                ['pattern'=>'/blog/preview-post/<id>/', 'route' => 'blog/preview', 'suffix'=>'/'],
             ],
         ],
         

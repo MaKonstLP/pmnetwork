@@ -3,7 +3,8 @@ $params = array_merge(
     require __DIR__ . '/../../../common/config/params.php',
     require __DIR__ . '/../../../common/config/params-local.php',
     require __DIR__ . '/../params.php',
-    require __DIR__ . '/../params-local.php'
+    require __DIR__ . '/../params-local.php',
+    \common\utility\SiteParamsHelper::getParamsForModule('svadbanaprirode')
 );
 Yii::setAlias('@module_web', '@frontend/modules/svadbanaprirode/web');
 
@@ -94,6 +95,7 @@ return [
                 ['pattern'=>'/ajax/filter','route'=>'listing/ajax-filter', 'suffix'=>'/'],
                 ['pattern'=>'/ajax/form','route'=>'form/send', 'suffix'=>'/'],
                 ['pattern'=>'/ajax/form/','route'=>'form/send', 'suffix'=>'/'],
+                ['pattern'=>'/ajax/sendroom/','route'=>'form/room', 'suffix'=>'/'],
                 ['pattern'=>'/test/index','route'=>'test/index', 'suffix'=>'/'],
                 ['pattern'=>'/test/test','route'=>'test/test', 'suffix'=>'/'],
                 ['pattern'=>'/test/renewelastic','route'=>'test/renewelastic', 'suffix'=>'/'],
@@ -101,6 +103,9 @@ return [
                 ['pattern'=>'/sitemap/','route'=>'sitemap/index', 'suffix'=>'/'],
                 ['pattern'=>'/privacy/','route'=>'static/privacy', 'suffix'=>'/'],
                 ['pattern'=>'/robots/','route'=>'static/robots', 'suffix'=>'/'],
+                ['pattern'=>'/api/map_all','route'=>'api/mapall', 'suffix'=>'/'],
+                ['pattern'=>'/blog/<alias>/', 'route' => 'blog/post', 'suffix'=>'/'],
+                ['pattern'=>'/blog/preview-post/<id>/', 'route' => 'blog/preview', 'suffix'=>'/'],
             ],
         ],
         

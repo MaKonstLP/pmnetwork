@@ -3,6 +3,7 @@
 namespace backend\models;
 
 use Yii;
+use common\models\siteobject\BaseSiteObject;
 
 /**
  * This is the model class for table "pages".
@@ -17,7 +18,7 @@ use Yii;
  * @property string $text_bottom
  * @property string $img_alt
  */
-class Pages extends \yii\db\ActiveRecord
+class Pages extends BaseSiteObject
 {
 
     public $breadcrumbs;

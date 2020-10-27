@@ -54,6 +54,7 @@ class AsyncRenewRestaurants extends BaseObject implements \yii\queue\JobInterfac
 			if(isset($response['params']['param_location'])){
 				$attributes['location'] = '';
 				$flag = true;
+				print_r($response['params']['param_location']['value']);
 				foreach ($response['params']['param_location']['value'] as $location){
 					if($flag){
 						$attributes['location'] .= $location;

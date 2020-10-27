@@ -12,6 +12,7 @@ abstract class BaseMediaEnum extends BaseEnum
 {
     const PHOTO = 'photo';
     const IMAGE = 'image';
+    const HTML = 'html';
 
     const LABEL_MAP = [
         self::PHOTO => 'Фото',

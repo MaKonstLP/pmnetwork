@@ -12,36 +12,62 @@ class MapAll extends BaseObject{
 
 	public $coords;
 
-	public function __construct($elastic_model, $subdomain_id) {
+	public function __construct($elastic_model, $subdomain_id, $filter = [], $type = 'restaurants') {
 
-		$restaurants = new ItemsFilterElastic([], 1000, 1, false, 'restaurants', $elastic_model, false, false, $subdomain_id);
+		$items = new ItemsFilterElastic($filter, 9000, 1, false, $type, $elastic_model, false, false, $subdomain_id);
 		$this->coords = [
 			'type' => 'FeatureCollection',
-			'features' => []
+			'features' => [],
+			'filter' => $filter
 		];
 
-		foreach ($restaurants->items as $key => $restaurant) {
-			foreach ($restaurant->restaurant_images as $key => $image) {
-				$map_preview = $image['subpath'];
-				break;
-			}
-
-			array_push($this->coords['features'], [
-				'type' => "Feature",
-	            'id' => $restaurant->id,
-	            'geometry' => [
-	              'type' => "Point",
-	              'coordinates' => [$restaurant->restaurant_latitude, $restaurant->restaurant_longitude]
-	            ],
-	            'properties' => [
-	              'balloonContent' => $restaurant->restaurant_address,
-	              'organization' => $restaurant->restaurant_name,
-	              'address' => $restaurant->restaurant_address,
-	              'img' => $map_preview,
-	              'clusterCaption' => $restaurant->restaurant_name,
-	              'link' => '/ploshhadki/'.$restaurant->id.'/',
-	            ]
-			]);
+		foreach ($items->items as $key => $item) {
+			switch ($type) {
+				case 'restaurants':
+					foreach ($item->restaurant_images as $key => $image) {
+						$map_preview = $image['subpath'];
+						break;
+					}
+					array_push($this->coords['features'], [
+						'type' => "Feature",
+			            'id' => $item->id,
+			            'geometry' => [
+			              'type' => "Point",
+			              'coordinates' => [$item->restaurant_latitude, $item->restaurant_longitude]
+			            ],
+			            'properties' => [
+			              'balloonContent' => $item->restaurant_address,
+			              'organization' => $item->restaurant_name,
+			              'address' => $item->restaurant_address,
+			              'img' => $map_preview,
+			              'clusterCaption' => $item->restaurant_name,
+			              'link' => '/ploshhadki/'.$item->id.'/',
+			            ]
+					]);
+					break;
+				case 'rooms':
+					foreach ($item->images as $key => $image) {
+						$map_preview = $image['subpath'];
+						break;
+					}
+					array_push($this->coords['features'], [
+						'type' => "Feature",
+			            'id' => $item->id,
+			            'geometry' => [
+			              'type' => "Point",
+			              'coordinates' => [$item->restaurant_latitude, $item->restaurant_longitude]
+			            ],
+			            'properties' => [
+			              'balloonContent' => $item->restaurant_address,
+			              'organization' => $item->restaurant_name.', '.$item->name,
+			              'address' => $item->restaurant_address,
+			              'img' => $map_preview,
+			              'clusterCaption' => $item->name,
+			              'link' => '/catalog/'.$item->id.'/',
+			            ]
+					]);
+					break;
+			}			
 		}		
 	}
 

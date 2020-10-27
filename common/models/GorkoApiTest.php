@@ -294,7 +294,7 @@ class GorkoApiTest extends Model
 
 	public function showOne($params) {
 		foreach ($params as $param) {
-			$api_url = 'https://api.gorko.ru/api/v2/restaurants/331635?embed=rooms,contacts&fields=address,params,covers,district&is_edit=1';
+			$api_url = 'https://api.gorko.ru/api/v2/restaurants/447257?embed=rooms,contacts&fields=address,params,covers,district&is_edit=1';
 			
 			$ch_venues = curl_init();
 			$ch_venues_url = $api_url;
