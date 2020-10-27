@@ -1,3 +1,4 @@
+import './constructor.css';
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { SortableContainer, SortableElement } from 'react-sortable-hoc';
@@ -10,48 +11,25 @@ import { Line } from 'rc-progress';
 import Checkbox from 'rc-checkbox';
 import Sticky from 'react-stickynode';
 
-const AVAILABLE_BLOCKS =
-    'blog-blocks/?fields=id,name,type&expand=blockTypeLabel';
-const PAGE_BLOCKS = 'blog-post-blocks/?expand=blogBlock,mediaTargets&sort=sort';
-const PUT_PAGE_BLOCKS = 'blog-post-blocks';
-const POST_BLOCKS_SORTINGS = 'blog-post-blocks/sort/';
-const PAGE_ID_REL = 'blog_post_id';
-const BLOCK_ID_REL = 'blog_block_id';
+import {
+    BLOCK_SHARED_SETTINGS,
+    DRAFT_REL_FIELD,
+    BLOCK_REL_FIELD,
+    BLOCK_REL_NAME,
+    GET_BLOCKS,
+    GET_DRAFT_BLOCKS,
+    POST_BLOCKS_SORTINGS,
+    API_DRAFT_BLOCKS,
+    POST_FILE,
+    POST_FILE_FASTVIEW,
+    DRAFT_ID,
+    PREVIEW_LINK,
+    SAVE_LINK,
+} from './settings';
+
 const PLAIN_TEXT_INPUT = 'text';
 const IMAGE_INPUT = 'image'; //TODO expand
 const RICH_TEXT_INPUT = 'html';
-
-const SETTINGS_SIZES = [
-    { value: 's', label: 'Маленький' },
-    { value: 'm', label: 'Обычный' },
-    { value: 'l', label: 'Большой' },
-];
-const SETTINGS_COLORS = [
-    { value: 'default', label: 'Стандартный' },
-    { value: 'blue', label: 'Синий' },
-    { value: 'yellow', label: 'Желтый' },
-    { value: 'gray', label: 'Серый' },
-];
-
-const SETTINGS_MARGIN = [
-    { value: 'default', label: 'Обычный' },
-    { value: 'large', label: 'Большой' },
-    { value: 'nomargin', label: 'Без отступов' },
-];
-
-const INITIAL_SETTINGS = {
-    setting_size: 's',
-    setting_color: 'default',
-    setting_margin: 'default',
-    paragraph: {
-        isset: false,
-        asHeading: false,
-        heading: '',
-        alias: '',
-        headingVar: '',
-        level: 1,
-    },
-};
 
 const PlainTextInput = ({ initialValue, onBlur, onInput, onInputReady }) => {
     const [loaded, setLoaded] = useState(false);
@@ -68,16 +46,25 @@ const PlainTextInput = ({ initialValue, onBlur, onInput, onInputReady }) => {
                 init={{
                     height: 110,
                     menubar: false,
-                    plugins: ['paste', 'autoresize', 'emoticons', 'charmap'],
+                    plugins: [
+                        'paste',
+                        'autoresize',
+                        'emoticons',
+                        'charmap',
+                        'nonbreaking',
+                        'link',
+                    ],
                     autoresize_bottom_margin: 10,
+                    default_link_target: '_blank',
                     toolbar:
-                        'undo redo | bold italic forecolor backcolor | emoticons charmap',
+                        'undo redo | bold italic forecolor backcolor | link emoticons charmap nonbreaking',
                     nowrap: true,
                     forced_root_block: '',
                     force_br_newlines: true,
                     force_p_newlines: false,
                     className: 'form-control',
                     language: 'ru',
+                    paste_as_text: true,
                 }}
                 inline={true}
                 onEditorChange={onInput}
@@ -101,6 +88,7 @@ const RichTextInput = ({
             editor.show();
             editor.focus();
         });
+
         editor.on('blur', () => editor.hide());
         setLoaded(true);
     };
@@ -115,20 +103,23 @@ const RichTextInput = ({
                 onBlur={onBlur}
                 initialValue={initialValue}
                 init={{
-                    menubar: true,
+                    menubar:
+                        'file edit insert view format table tools help custom',
                     autoresize_bottom_margin: 10,
                     language: 'ru',
                     plugins: [
                         'advlist autolink lists link charmap preview anchor emoticons nonbreaking',
                         'searchreplace visualblocks code fullscreen autoresize',
-                        'insertdatetime media table contextmenu paste image',
+                        'insertdatetime media table paste image',
                     ],
+                    convert_urls: false,
                     image_caption: true,
+                    default_link_target: '_blank',
                     toolbar:
                         'undo redo | bold italic forecolor backcolor|' +
                         ' aligncenter alignright alignjustify |' +
                         'bullist numlist outdent indent | image link |' +
-                        ' emoticons charmap nonbreaking',
+                        'emoticons charmap nonbreaking',
                     nowrap: true,
                     className: 'form-control',
                     images_upload_handler: function (
@@ -174,12 +165,35 @@ const RichTextInput = ({
                                 return xhr;
                             },
                             method: 'post',
-                            url: '/media/upload/',
+                            url: POST_FILE,
                             data: formData,
                             success: onSuccess,
                             error: onError,
                             processData: false,
                             contentType: false,
+                        });
+                    },
+                    menu: {
+                        custom: { title: 'Выделение', items: 'wsnobreak' },
+                    },
+                    setup: (editor) => {
+                        editor.ui.registry.addMenuItem('wsnobreak', {
+                            text: 'Сделать выделенный текст неразрывным',
+                            onAction: () => {
+                                editor.focus();
+                                var text = editor.selection.getContent({
+                                    format: 'html',
+                                });
+                                if (text && text.length > 0) {
+                                    editor.execCommand(
+                                        'mceInsertContent',
+                                        false,
+                                        '<span style="white-space: nowrap;">' +
+                                            text +
+                                            '</span>'
+                                    );
+                                }
+                            },
                         });
                     },
                 }}
@@ -202,7 +216,7 @@ const FileInput = ({ mediaTargetId, onInputReady }) => {
             $(elem).mediaInputGen(response, () => setLoaded(true));
         };
         $.ajax({
-            url: '/media/fast-view/',
+            url: POST_FILE_FASTVIEW,
             type: 'post',
             dataType: 'json',
             data: { media_target_id: mediaTargetId },
@@ -233,37 +247,59 @@ const FileInput = ({ mediaTargetId, onInputReady }) => {
 
 const SortableItem = SortableElement(
     ({
-        item: pageBlock,
+        item: draftBlock,
         ajax,
         onDeleteBlock,
         onExpandedStateChange,
         onBlockLoaded,
     }) => {
         let inputsMeta = {},
-            initialInputsContent = _.cloneDeep(INITIAL_SETTINGS),
+            initialInputsContent = _.assign(
+                {},
+                {
+                    paragraph: {
+                        isset: false,
+                        asHeading: false,
+                        heading: '',
+                        alias: '',
+                        headingVar: '',
+                        level: 1,
+                    },
+                }
+            ),
             inputsReadyInitState = {},
-            customSettings = [];
+            blockSettings = [];
+        const addToBlockSettings = ({ title, slug, type, variants }) => {
+            const settingVarName = `setting_${slug}`;
+            const defaultVariant = variants.find((variant) => variant.default);
+            if (defaultVariant)
+                initialInputsContent[settingVarName] = defaultVariant.value;
+            blockSettings = [
+                ...blockSettings,
+                {
+                    title,
+                    type,
+                    variants,
+                    settingVarName,
+                },
+            ];
+        };
+        BLOCK_SHARED_SETTINGS.forEach((setting) => {
+            addToBlockSettings(setting);
+        });
         try {
-            inputsMeta = JSON.parse(pageBlock.blogBlock.inputs) || {};
+            inputsMeta = JSON.parse(draftBlock[BLOCK_REL_NAME].inputs) || {};
             for (const inputType of Object.keys(inputsMeta)) {
                 if (inputType == 'settings') {
-                    for (const { title, slug, type, variants } of inputsMeta[
-                        inputType
-                    ]) {
-                        const settingVarName = `setting_${slug}`;
-                        const defaultValue = variants[0].value;
-                        customSettings.push({
-                            title,
-                            type,
-                            variants,
-                            defaultValue,
-                            settingVarName,
-                        });
-                    }
+                    inputsMeta[inputType].forEach((setting) => {
+                        addToBlockSettings(setting);
+                    });
                 } else {
-                    for (const { heading = null, slug } of inputsMeta[
-                        inputType
-                    ]) {
+                    for (const {
+                        heading = null,
+                        slug,
+                        titlePreview = false,
+                    } of inputsMeta[inputType]) {
                         const inputVarName = `${inputType}_${slug}`;
                         inputsReadyInitState = _.assign(
                             {},
@@ -286,13 +322,21 @@ const SortableItem = SortableElement(
                                     },
                                 }
                             );
-                            break;
+                        }
+                        if (titlePreview) {
+                            initialInputsContent = _.assign(
+                                {},
+                                initialInputsContent,
+                                {
+                                    titlePreviewInput: inputVarName,
+                                }
+                            );
                         }
                     }
                 }
             }
-            if (pageBlock.content) {
-                const parsed = JSON.parse(pageBlock.content) || {};
+            if (draftBlock.content) {
+                const parsed = JSON.parse(draftBlock.content) || {};
                 initialInputsContent = _.assign(
                     {},
                     initialInputsContent,
@@ -311,12 +355,30 @@ const SortableItem = SortableElement(
         const [isDirty, setIsDirty] = useState(false);
         const [mode, setMode] = useState('editor');
 
+        const getStrippedTextFromHtml = (html) => {
+            return new DOMParser().parseFromString(html, 'text/html')
+                .documentElement.textContent;
+        };
+
+        const initialTitlePreview =
+            (inputsContent[inputsContent.titlePreviewInput] &&
+                getStrippedTextFromHtml(
+                    inputsContent[inputsContent.titlePreviewInput]
+                )) ||
+            '';
+
+        const [titlePreview, setTitlePreview] = useState(initialTitlePreview);
+
         const headingVar = inputsContent.paragraph.headingVar;
+
+        const updateTitlePreview = (html) => {
+            const stripped = getStrippedTextFromHtml(html);
+            setTitlePreview(stripped);
+        };
 
         const setParagraphAsHeading = (newinputsContent) => {
             const html = newinputsContent[headingVar];
-            const stripped = new DOMParser().parseFromString(html, 'text/html')
-                .documentElement.textContent;
+            const stripped = getStrippedTextFromHtml(html);
             newinputsContent.paragraph.heading = stripped;
             newinputsContent.paragraph.alias = CyrillicToTranslit()
                 .transform(stripped, '-')
@@ -382,7 +444,7 @@ const SortableItem = SortableElement(
         const onSave = () => {
             ajax(
                 'put',
-                PUT_PAGE_BLOCKS + '/' + pageBlock.id + '/',
+                API_DRAFT_BLOCKS + draftBlock.id + '/',
                 (res) => {
                     setIsDirty(false);
                 },
@@ -423,25 +485,23 @@ const SortableItem = SortableElement(
                         inputs = inputsMeta[inputType].map(
                             ({ title, slug }, idx) => {
                                 const contentVarName = `${inputType}_${slug}`;
+                                const initialValue =
+                                    (inputsContent[contentVarName] &&
+                                        inputsContent[contentVarName]) ||
+                                    '';
                                 return {
                                     title,
                                     inputElement: (
                                         <PlainTextInput
-                                            initialValue={
-                                                (inputsContent[
-                                                    contentVarName
-                                                ] &&
-                                                    inputsContent[
-                                                        contentVarName
-                                                    ]) ||
-                                                ''
-                                            }
-                                            onInput={(data) =>
+                                            initialValue={initialValue}
+                                            onInput={(data) => {
+                                                titlePreview &&
+                                                    updateTitlePreview(data);
                                                 onInput({
                                                     alias: contentVarName,
                                                     data,
-                                                })
-                                            }
+                                                });
+                                            }}
                                             onBlur={onSave}
                                             onInputReady={onInputReady(
                                                 contentVarName
@@ -456,28 +516,26 @@ const SortableItem = SortableElement(
                         inputs = inputsMeta[inputType].map(
                             ({ title, slug }, idx) => {
                                 const contentVarName = `${inputType}_${slug}`;
-                                const mediaTarget = pageBlock.mediaTargets.find(
+                                const initialValue =
+                                    (inputsContent[contentVarName] &&
+                                        inputsContent[contentVarName]) ||
+                                    '';
+                                const mediaTarget = draftBlock.mediaTargets.find(
                                     (item) => item.type == contentVarName
                                 );
                                 return {
                                     title,
                                     inputElement: (
                                         <RichTextInput
-                                            initialValue={
-                                                (inputsContent[
-                                                    contentVarName
-                                                ] &&
-                                                    inputsContent[
-                                                        contentVarName
-                                                    ]) ||
-                                                ''
-                                            }
-                                            onInput={(data) =>
+                                            initialValue={initialValue}
+                                            onInput={(data) => {
+                                                titlePreview &&
+                                                    updateTitlePreview(data);
                                                 onInput({
                                                     alias: contentVarName,
                                                     data,
-                                                })
-                                            }
+                                                });
+                                            }}
                                             onBlur={onSave}
                                             onInputReady={onInputReady(
                                                 contentVarName
@@ -496,7 +554,7 @@ const SortableItem = SortableElement(
                         inputs = inputsMeta[inputType].map(
                             ({ title, slug }, idx) => {
                                 const contentVarName = `${inputType}_${slug}`;
-                                const mediaTarget = pageBlock.mediaTargets.find(
+                                const mediaTarget = draftBlock.mediaTargets.find(
                                     (item) => item.type == contentVarName
                                 );
                                 return {
@@ -526,11 +584,11 @@ const SortableItem = SortableElement(
         const onChangeMode = (newMode) => {
             if (newMode == mode) {
                 onExpandedStateChange({
-                    body: !pageBlock.expanded.body,
+                    body: !draftBlock.expanded.body,
                 });
             } else {
                 setMode(newMode);
-                if (!pageBlock.expanded.body) {
+                if (!draftBlock.expanded.body) {
                     onExpandedStateChange({
                         body: true,
                     });
@@ -539,10 +597,10 @@ const SortableItem = SortableElement(
         };
 
         return (
-            <li className='editor__block' key={pageBlock.id}>
+            <li className='editor__block' key={draftBlock.id}>
                 <div
                     className={`box box-primary ${
-                        pageBlock.expanded.body ? '' : 'collapsed-box'
+                        draftBlock.expanded.body ? '' : 'collapsed-box'
                     }`}
                 >
                     <div
@@ -551,13 +609,22 @@ const SortableItem = SortableElement(
                     >
                         <div
                             className='box-title'
+                            title={draftBlock.id}
+                            id={draftBlock.id}
                             onClick={() => {
                                 onExpandedStateChange({
-                                    body: !pageBlock.expanded.body,
+                                    body: !draftBlock.expanded.body,
                                 });
                             }}
                         >
-                            <h5>{pageBlock.blogBlock.name}</h5>
+                            <h5>{draftBlock[BLOCK_REL_NAME].name}</h5>
+                        </div>
+                        <div
+                            className={`title-elipsis ${
+                                draftBlock.expanded.body ? 'hidden' : ''
+                            }`}
+                        >
+                            {titlePreview}
                         </div>
                         <div
                             className='btn-group'
@@ -570,7 +637,7 @@ const SortableItem = SortableElement(
                                 }}
                                 className={`btn btn-default ${
                                     mode == 'editor' &&
-                                    pageBlock.expanded.body &&
+                                    draftBlock.expanded.body &&
                                     'bg-gray'
                                 }`}
                             >
@@ -580,7 +647,7 @@ const SortableItem = SortableElement(
                                 type='button'
                                 className={`btn btn-default ${
                                     mode == 'settings' &&
-                                    pageBlock.expanded.body &&
+                                    draftBlock.expanded.body &&
                                     'bg-gray'
                                 }`}
                                 onClick={() => {
@@ -637,66 +704,8 @@ const SortableItem = SortableElement(
                         }`}
                     >
                         <div className='box-body'>
-                            <div className='form-group_row'>
-                                <div className=''>Ширина блока</div>
-                                <Select
-                                    defaultValue={SETTINGS_SIZES.find(
-                                        ({ value }) =>
-                                            value == inputsContent.setting_size
-                                    )}
-                                    options={SETTINGS_SIZES}
-                                    onChange={({ value }) =>
-                                        onSettingChange({
-                                            settingVarName: 'setting_size',
-                                            value,
-                                        })
-                                    }
-                                    isSearchable={false}
-                                />
-                            </div>
-                            <div className='form-group_row'>
-                                <div className=''>Отступы</div>
-                                <Select
-                                    defaultValue={SETTINGS_MARGIN.find(
-                                        ({ value }) =>
-                                            value ==
-                                            inputsContent.setting_margin
-                                    )}
-                                    options={SETTINGS_MARGIN}
-                                    onChange={({ value }) =>
-                                        onSettingChange({
-                                            settingVarName: 'setting_margin',
-                                            value,
-                                        })
-                                    }
-                                    isSearchable={false}
-                                />
-                            </div>
-                            <div className='form-group_row'>
-                                <div className=''>Цвет</div>
-                                <Select
-                                    defaultValue={SETTINGS_COLORS.find(
-                                        ({ value }) =>
-                                            value == inputsContent.setting_color
-                                    )}
-                                    options={SETTINGS_COLORS}
-                                    onChange={({ value }) =>
-                                        onSettingChange({
-                                            settingVarName: 'setting_color',
-                                            value,
-                                        })
-                                    }
-                                    isSearchable={false}
-                                />
-                            </div>
-                            {customSettings.map(
-                                ({
-                                    title,
-                                    type,
-                                    variants,
-                                    defaultValue,
-                                    settingVarName,
-                                }) =>
+                            {blockSettings.map(
+                                ({ title, type, variants, settingVarName }) =>
                                     type == 'select' && (
                                         <div
                                             className='form-group_row'
@@ -781,39 +790,37 @@ const SortableList = SortableContainer(({ children }) => {
 
 const Editor = ({
     ajax,
-    pageId,
     newBlock,
     setNewBlock,
     shouldAllBlocksExpand,
     setShouldAllBlocksExpand,
+    shouldBlocksCollapseOnAction,
 }) => {
-    const [pageBlocks, setPageBlocks] = useState([]);
-
-    const setNewPageBlocks = (newPageBlocks) => {
-        const withExpandedState = newPageBlocks.map((pageBlock, idx, arr) => ({
-            ...pageBlock,
-            expanded: { body: idx === arr.length - 1 },
-        }));
-        // const sortedBlocks = _.orderBy(withExpandedState, 'sort', 'asc');
-        setPageBlocks(withExpandedState);
+    const [draftBlocks, setDraftBlocks] = useState([]);
+    const setNewDraftBlocks = (newDraftBlocks) => {
+        const withExpandedState = newDraftBlocks.map((draftBlock, idx, arr) => {
+            const blockExpandedState =
+                shouldBlocksCollapseOnAction || draftBlock.expanded == undefined
+                    ? { body: idx === arr.length - 1 }
+                    : draftBlock.expanded;
+            return {
+                ...draftBlock,
+                expanded: blockExpandedState,
+            };
+        });
+        setDraftBlocks(withExpandedState);
     };
 
     const addBlock = (item) => {
-        setNewPageBlocks([...pageBlocks, item]);
+        setNewDraftBlocks([...draftBlocks, item]);
         refreshSortings();
     };
     const removeBlock = (id) => {
-        ajax(
-            'delete',
-            PUT_PAGE_BLOCKS + '/' + id + '/',
-            (data, textStatus, xhr) => {
-                if (xhr.status == 204) {
-                    setNewPageBlocks(
-                        pageBlocks.filter((item) => item.id !== id)
-                    );
-                }
+        ajax('delete', API_DRAFT_BLOCKS + id + '/', (data, textStatus, xhr) => {
+            if (xhr.status == 204) {
+                setNewDraftBlocks(draftBlocks.filter((item) => item.id !== id));
             }
-        );
+        });
     };
     const onDeleteBlock = (id) => () => {
         const result = confirm('Вы уверены что хотите удалить блок?');
@@ -822,10 +829,10 @@ const Editor = ({
         }
     };
     const refreshSortings = () => {
-        const updateData = pageBlocks.reduce((acc, pageBlock, idx) => {
+        const updateData = draftBlocks.reduce((acc, draftBlock, idx) => {
             const sortIndex = idx + 1;
-            if (pageBlock.sort != sortIndex) {
-                return { ...acc, [pageBlock.id]: sortIndex };
+            if (draftBlock.sort != sortIndex) {
+                return { ...acc, [draftBlock.id]: sortIndex };
             }
             return acc;
         }, {});
@@ -835,8 +842,8 @@ const Editor = ({
                 POST_BLOCKS_SORTINGS,
                 (rowsUpdated) => {
                     if (_.size(updateData) == rowsUpdated) {
-                        setNewPageBlocks(
-                            pageBlocks.map((item, idx) => {
+                        setNewDraftBlocks(
+                            draftBlocks.map((item, idx) => {
                                 item.sort = idx + 1;
                                 return item;
                             })
@@ -848,17 +855,17 @@ const Editor = ({
             );
         }
     };
-    const createNewPageBlock = () => {
+    const createNewDraftBlock = () => {
         if (newBlock !== null) {
             ajax(
                 'post',
-                PAGE_BLOCKS,
+                GET_DRAFT_BLOCKS,
                 (res) => {
                     addBlock(res);
                 },
                 {
-                    [PAGE_ID_REL]: pageId,
-                    [BLOCK_ID_REL]: newBlock.id,
+                    [DRAFT_REL_FIELD]: DRAFT_ID,
+                    [BLOCK_REL_FIELD]: newBlock.id,
                 },
                 (res) => {},
                 setNewBlock(null)
@@ -867,15 +874,15 @@ const Editor = ({
     };
 
     const expandAllBlocks = (state) => {
-        const newPageBlocks = pageBlocks.map((pageBlock, idx, arr) => ({
-            ...pageBlock,
+        const newDraftBlocks = draftBlocks.map((draftBlock, idx, arr) => ({
+            ...draftBlock,
             expanded: { body: state },
         }));
-        setPageBlocks(newPageBlocks);
+        setDraftBlocks(newDraftBlocks);
     };
 
     useEffect(() => {
-        createNewPageBlock();
+        createNewDraftBlock();
     }, [newBlock]);
 
     useEffect(() => {
@@ -889,19 +896,19 @@ const Editor = ({
         () =>
             ajax(
                 'get',
-                PAGE_BLOCKS + '&' + 'filter[blog_post_id]=' + pageId,
-                (res) => setNewPageBlocks(res.items || [])
+                `${GET_DRAFT_BLOCKS}&filter[${DRAFT_REL_FIELD}]=${DRAFT_ID}`,
+                (res) => setNewDraftBlocks(res.items || [])
             ),
         []
     );
 
     useEffect(() => {
         refreshSortings();
-    }, [pageBlocks]);
+    }, [draftBlocks]);
 
     const onSortEnd = ({ oldIndex, newIndex, collection, isKeySorting }) => {
-        const sortedBlocks = arrayMove(pageBlocks, oldIndex - 1, newIndex - 1);
-        setNewPageBlocks(sortedBlocks);
+        const sortedBlocks = arrayMove(draftBlocks, oldIndex - 1, newIndex - 1);
+        setNewDraftBlocks(sortedBlocks);
     };
 
     const shouldCancelStart = (e) => {
@@ -911,29 +918,29 @@ const Editor = ({
     };
 
     const onExpandedStateChange = (id) => ({ body }) => {
-        const newPageBlocks = pageBlocks.map((pageBlock) => {
-            if (id == pageBlock.id) {
-                return { ...pageBlock, expanded: { body } };
+        const newDraftBlocks = draftBlocks.map((draftBlock) => {
+            if (id == draftBlock.id) {
+                return { ...draftBlock, expanded: { body } };
             }
-            return pageBlock;
+            return draftBlock;
         });
-        setPageBlocks(newPageBlocks);
+        setDraftBlocks(newDraftBlocks);
     };
 
     const onBlockLoaded = (id) => (state) => {
-        const newPageBlocks = pageBlocks.map((pageBlock) => {
-            if (id == pageBlock.id) {
-                return { ...pageBlock, loaded: state };
+        const newDraftBlocks = draftBlocks.map((draftBlock) => {
+            if (id == draftBlock.id) {
+                return { ...draftBlock, loaded: state };
             }
-            return pageBlock;
+            return draftBlock;
         });
-        setPageBlocks(newPageBlocks);
+        setDraftBlocks(newDraftBlocks);
     };
 
     const percentOfBlocksLoaded =
-        pageBlocks.length > 0
-            ? (100 / pageBlocks.length) *
-              pageBlocks.filter((block) => block.loaded).length
+        draftBlocks.length > 0
+            ? (100 / draftBlocks.length) *
+              draftBlocks.filter((block) => block.loaded).length
             : 0;
     const isFullyLoaded = Math.round(percentOfBlocksLoaded) === 100;
 
@@ -960,17 +967,17 @@ const Editor = ({
                     onSortEnd={onSortEnd}
                     shouldCancelStart={shouldCancelStart}
                 >
-                    {pageBlocks.map((pageBlock, idx) => (
+                    {draftBlocks.map((draftBlock, idx) => (
                         <SortableItem
-                            key={`item_${pageBlock.id}`}
-                            index={pageBlock.sort}
-                            item={pageBlock}
+                            key={`item_${draftBlock.id}`}
+                            index={draftBlock.sort}
+                            item={draftBlock}
                             ajax={ajax}
-                            onDeleteBlock={onDeleteBlock(pageBlock.id)}
+                            onDeleteBlock={onDeleteBlock(draftBlock.id)}
                             onExpandedStateChange={onExpandedStateChange(
-                                pageBlock.id
+                                draftBlock.id
                             )}
-                            onBlockLoaded={onBlockLoaded(pageBlock.id)}
+                            onBlockLoaded={onBlockLoaded(draftBlock.id)}
                         />
                     ))}
                 </SortableList>
@@ -983,12 +990,12 @@ const ToolsPanel = ({
     ajax,
     onBlockBtnClick,
     setShouldAllBlocksExpand,
-    frontendDomen,
-    pageId,
+    shouldBlocksCollapseOnAction,
+    setShouldBlocksCollapseOnAction,
 }) => {
     const [availableBlocks, setAvailableBlocks] = useState([]);
     useEffect(() => {
-        ajax('get', AVAILABLE_BLOCKS, (res) => {
+        ajax('get', GET_BLOCKS, (res) => {
             setAvailableBlocks(res.items || []);
         });
     }, []);
@@ -1007,6 +1014,25 @@ const ToolsPanel = ({
     return (
         <div className='constructor__tools-panel'>
             <Sticky enabled={true} top={50} innerClass='tools-panel'>
+                <div className='form_group'>
+                    <button
+                        title='Применяет текущие изменения для уже опубликованного
+                            поста. Не нужно нажимать для сохранения состояния
+                            конструктора!'
+                        className='btn btn-m mr-5 mb-5 btn-primary draft-save'
+                        onClick={() => ajax('patch', SAVE_LINK)}
+                    >
+                        Применить изменения
+                    </button>
+                    <a target='_blank' href={`${PREVIEW_LINK}`}>
+                        <button
+                            className='btn btn-sm mr-5 mb-5 btn-default'
+                        >
+                            Предпросмотр&nbsp;
+                            <i className='fa fa-external-link'></i>
+                        </button>
+                    </a>
+                </div>
                 {_.keys(groups).map((key, idx) => {
                     const { label, items } = groups[key];
                     return (
@@ -1031,50 +1057,60 @@ const ToolsPanel = ({
                 })}
                 <div className='form_group'>
                     <label>Настройки</label>
-                    <ul>
-                        <li>
-                            <button
-                                className='btn btn-sm mr-5 mb-5 btn-default'
-                                onClick={(e) => {
-                                    setShouldAllBlocksExpand(false);
+                    <div className='form-group_row form-group_row__checkbox form-group_row__checkbox_small'>
+                        <label>
+                            <span>Сворачивать блоки при действиях</span>
+                            <Checkbox
+                                onChange={(e) => {
+                                    setShouldBlocksCollapseOnAction(
+                                        e.target.checked
+                                    );
+                                    const localStorageValue = e.target.checked
+                                        ? 'true'
+                                        : 'false';
+                                    localStorage.setItem(
+                                        'shouldBlocksCollapseOnAction',
+                                        localStorageValue
+                                    );
                                 }}
-                            >
-                                Свернуть все
-                            </button>
-                            <button
-                                className='btn btn-sm mr-5 mb-5 btn-default'
-                                onClick={(e) => {
-                                    setShouldAllBlocksExpand(true);
-                                }}
-                            >
-                                Развернуть все
-                            </button>
-                            <a
-                                target='_blank'
-                                href={`${frontendDomen}/blog/preview-post/${pageId}/`}
-                            >
-                                <button
-                                    className='btn btn-sm mr-5 mb-5 btn-default'
-                                    onClick={(e) => {
-                                        setShouldAllBlocksExpand(true);
-                                    }}
-                                >
-                                    Предпросмотр&nbsp;
-                                    <i className='fa fa-external-link'></i>
-                                </button>
-                            </a>
-                        </li>
-                    </ul>
+                                defaultChecked={shouldBlocksCollapseOnAction}
+                            />
+                        </label>
+                    </div>
+                    <div>
+                        <button
+                            className='btn btn-sm mr-5 mb-5 btn-default'
+                            onClick={(e) => {
+                                setShouldAllBlocksExpand(false);
+                            }}
+                        >
+                            Свернуть все
+                        </button>
+                        <button
+                            className='btn btn-sm mr-5 mb-5 btn-default'
+                            onClick={(e) => {
+                                setShouldAllBlocksExpand(true);
+                            }}
+                        >
+                            Развернуть все
+                        </button>
+                    </div>
                 </div>
             </Sticky>
         </div>
     );
 };
 
-const App = ({ pageId, frontendDomen }) => {
+const App = () => {
     const [isFetching, setIsFetching] = useState(false);
     const [newBlock, setNewBlock] = useState(null);
     const [shouldAllBlocksExpand, setShouldAllBlocksExpand] = useState(null);
+    const initialShouldBlocksCollapseOnAction =
+        localStorage.getItem('shouldBlocksCollapseOnAction') !== 'false';
+    const [
+        shouldBlocksCollapseOnAction,
+        setShouldBlocksCollapseOnAction,
+    ] = useState(initialShouldBlocksCollapseOnAction);
 
     const ajax = (
         method,
@@ -1090,19 +1126,19 @@ const App = ({ pageId, frontendDomen }) => {
             setIsFetching(true);
             console.log('sending ' + method, data);
             $.ajax({
-                url: `/${url}`,
+                url,
                 type: method,
                 method,
                 cache: false,
                 data,
                 dataType: 'json',
                 success: (res, textStatus, xhr) => {
-                    success(res, textStatus, xhr);
                     setIsFetching(false);
+                    success(res, textStatus, xhr);
                 },
                 error: (res) => {
-                    error(res);
                     setIsFetching(false);
+                    error(res);
                 },
             });
         }
@@ -1116,11 +1152,11 @@ const App = ({ pageId, frontendDomen }) => {
         onBlockBtnClick,
         ajax,
         newBlock,
-        pageId,
         setNewBlock,
         shouldAllBlocksExpand,
         setShouldAllBlocksExpand,
-        frontendDomen,
+        shouldBlocksCollapseOnAction,
+        setShouldBlocksCollapseOnAction,
     };
     return (
         <div className='constructor'>
@@ -1132,13 +1168,7 @@ const App = ({ pageId, frontendDomen }) => {
 
 $(() => {
     const domContainer = document.getElementById('react-constructor');
-    const pageId = $('[data-page-id]') && $('[data-page-id]').data('page-id');
-    const frontendDomen =
-        $('[data-frontend]') && $('[data-frontend]').data('frontend');
-    if (pageId) {
-        ReactDOM.render(
-            <App pageId={pageId} frontendDomen={frontendDomen} />,
-            domContainer
-        );
+    if (DRAFT_ID) {
+        ReactDOM.render(<App />, domContainer);
     }
 });

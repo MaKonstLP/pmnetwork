@@ -47,6 +47,11 @@ class BlogPostController extends BaseBackendController
 		]);
 	}
 
+	public function actionSave($id)
+	{
+		$post = BlogPost::findOne($id);
+		return $post->saveHtml();
+	}
 
 	/**
 	 * Displays a single BlogPost model.

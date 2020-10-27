@@ -12,7 +12,6 @@ class Constructor extends AssetBundle
     public $basePath = '@webroot';
     public $baseUrl = '@web';
     public $css = [
-        'css/constructor.css',
     ];
     public $js = [
         'js/constructor.js',

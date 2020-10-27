@@ -20,7 +20,7 @@ if (isset($actionColumnTemplates)) {
 	$actionColumnTemplateString = $actionColumnTemplate;
 } else {
 	Yii::$app->view->params['pageButtons'] = Html::a('<span class="glyphicon glyphicon-plus"></span> ' . Yii::t('cruds', 'New'), ['create'], ['class' => 'btn btn-success']);
-	$actionColumnTemplateString = "{view} {update} {delete}";
+	$actionColumnTemplateString = "{preview} {view} {update} {delete}";
 }
 $actionColumnTemplateString = '<div class="action-buttons">' . $actionColumnTemplateString . '</div>';
 ?>
@@ -174,6 +174,16 @@ $actionColumnTemplateString = '<div class="action-buttons">' . $actionColumnTemp
 								'data-pjax' => '0',
 							];
 							return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', $url, $options);
+						},
+						'preview' => function ($url, $model, $key) {
+							$options = [
+								'title' => 'Просмотр',
+								'aria-label' => Yii::t('cruds', 'View'),
+								'data-pjax' => '0',
+								'target' => '_blank'
+							];
+							$url = \Yii::$app->params['siteProtocol'] . '://' . \Yii::$app->params['siteAddress'] . '/blog/preview-post/' . $model->id . '/';
+							return Html::a('<span class="glyphicon glyphicon-new-window"></span>', $url, $options);
 						}
 
 

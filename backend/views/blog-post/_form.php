@@ -21,7 +21,11 @@ Constructor::register($this);
 
 ?>
 
-<div class="blog-post-form" data-page-id="<?= $model->id ?>" data-frontend="<?= \Yii::$app->params['siteProtocol'] . '://' . \Yii::$app->params['siteAddress'] ?>">
+<div class="blog-post-form" 
+	data-ctor-draft-id="<?= $model->id ?>" 
+	data-ctor-preview-link="<?= \Yii::$app->params['siteProtocol'] . '://' . \Yii::$app->params['siteAddress'] . '/blog/preview-post/' . $model->id . '/' ?>"
+	data-ctor-save-link="<?= '/blog-post/' . $model->id . '/save/' ?>" 
+>
 
 	<?php $this->beginBlock('main'); ?>
 

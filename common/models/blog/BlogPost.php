@@ -21,6 +21,7 @@ use yii\helpers\ArrayHelper;
  * @property integer $published
  * @property integer $featured
  * @property integer $sort
+ * @property string $html
  * @property integer $created_by
  * @property string $created_at
  * @property integer $updated_by
@@ -73,7 +74,7 @@ class BlogPost extends BaseSiteObject
     {
         return [
             [['name', 'alias'], 'required'],
-            [['intro'], 'string'],
+            [['intro', 'html'], 'string'],
             [['published', 'featured', 'sort'], 'integer'],
             [['name', 'alias', 'short_intro'], 'string', 'max' => 255],
             [['published_at'], 'date', 'format' => 'php:Y-m-d H:i:s'],
@@ -146,7 +147,16 @@ class BlogPost extends BaseSiteObject
 
     public function getHtml()
     {
-        return  $this->getBodyHtml();
+        if ($this->hasProperty('html') && !empty($this->html)) {
+            return $this->html;
+        }
+        return $this->getBodyHtml();
+    }
+
+    public function saveHtml()
+    {
+        $this->html = $this->getBodyHtml();
+        return $this->save();
     }
 
     public function getTableOfContentsArray()
