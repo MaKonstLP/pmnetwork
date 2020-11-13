@@ -129,9 +129,9 @@ class BlogBlock extends \yii\db\ActiveRecord
     }
 
     /** @param BlogPostBlock $blogPostBlock */
-    public function render($blogPostBlock)
+    public function render($blogPostBlock, $extraData = [])
     {
-        $data = [];
+        $data = $extraData;
         try {
             $dataFromInputs = Json::decode($blogPostBlock->content);
             $inputs = Json::decode($this->inputs);

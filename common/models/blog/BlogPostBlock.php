@@ -94,9 +94,9 @@ class BlogPostBlock extends BaseSiteObject
         return $this->hasOne(\common\models\blog\BlogPost::className(), ['id' => 'blog_post_id']);
     }
 
-    public function getHtml()
+    public function getHtml($extraData = [])
     {
-        return $this->blogBlock->render($this);
+        return $this->blogBlock->render($this, $extraData);
     }
 
     public function getParagraph()

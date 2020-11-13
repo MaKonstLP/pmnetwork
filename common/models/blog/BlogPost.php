@@ -145,12 +145,12 @@ class BlogPost extends BaseSiteObject
         return $this->hasMany(\common\models\blog\BlogTag::className(), ['id' => 'blog_tag_id'])->viaTable('blog_post_tag', ['blog_post_id' => 'id']);
     }
 
-    public function getHtml()
+    public function getHtml($extraData = [])
     {
-        if ($this->hasProperty('html') && !empty($this->html)) {
+        if (empty($extraData) && $this->hasProperty('html') && !empty($this->html)) {
             return $this->html;
         }
-        return $this->getBodyHtml();
+        return $this->getBodyHtml($extraData);
     }
 
     public function saveHtml()
@@ -188,10 +188,10 @@ class BlogPost extends BaseSiteObject
         return $result;
     }
 
-    public function getBodyHtml()
+    public function getBodyHtml($extraData = [])
     {
-        return array_reduce($this->blogPostBlocks, function ($acc, $blogPostBlock) {
-            return $acc . $blogPostBlock->getHtml();
+        return array_reduce($this->blogPostBlocks, function ($acc, $blogPostBlock) use ($extraData) {
+            return $acc . $blogPostBlock->getHtml($extraData);
         }, '');
     }
 
