@@ -25,8 +25,8 @@ return [
             'transport' => [
                 'class' => 'Swift_SmtpTransport',
                 'host' => 'smtp.yandex.ru',
-                'username' => 'post@smilerooms.ru',
-                'password' => 'H[ZWkBS++8.>1',
+                'username' => 'send@korporativ-ng.ru',
+                'password' => 'sojkxccpvrcgcjbt',
                 'port' => '465',
                 'encryption' => 'ssl',
             ],

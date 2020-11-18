@@ -14,9 +14,13 @@ class ItemsFilterElastic extends BaseObject{
 
 	public $items,
 		   $total,
-		   $pages;
+		   $pages,
+		   $query;
 
 	public function __construct($filter_arr = [], $limit = 24, $offset = 0, $widget_flag = false, $main_table, $elastic_model = false, $random = false, $must_not = false, $api_subdomen = false) {
+
+		//echo '<pre style="display:none;">';
+		//echo '</pre>';
 
 		$filter_main_model = ArrayHelper::map(Filter::find()->all(), 'alias', 'type');
 
@@ -229,7 +233,7 @@ class ItemsFilterElastic extends BaseObject{
 				array_push($temp_type_arr, $value);
 			}
 			if($main_table == 'rooms'){
-				array_push($final_query['bool']['must'], ['bool' => ['should' => $temp_type_arr]]);
+				array_push($final_query['bool']['must'], ['nested' => ["path" => "restaurant_location","query" => ['bool' => ['must' => ['bool' => ['should' => $temp_type_arr]]]]]]);
 			}
 			else{
 				array_push($final_query['bool']['must'], ['nested' => ["path" => "restaurant_location","query" => ['bool' => ['must' => ['bool' => ['should' => $temp_type_arr]]]]]]);
@@ -273,6 +277,8 @@ class ItemsFilterElastic extends BaseObject{
 		$this->items = $elastic_search['hits']['hits'];
 
 		$this->pages = ceil($this->total / $limit);
+
+		$this->query = $query;
 		
 	}
 

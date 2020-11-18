@@ -138,10 +138,11 @@ class GorkoApi extends Model
 			//СОЗДАНИЕ ОЧЕРЕДИ ДЛЯ ОБНОВЛЕНИЯ РЕСТОРАНОВ
 			foreach ($gorko_rest_ids as $key => $value) {
 				$queue_id = Yii::$app->queue->push(new AsyncRenewRestaurants([
-					'gorko_id' => $key,
-					'dsn' => $param['dsn'],
+					'gorko_id' 	=> $key,
+					'dsn' 		=> $param['dsn'],
 					'watermark' => $param['watermark'],
-					'imageHash' => $param['imageHash']
+					'imageHash' => $param['imageHash'],
+					'only_comm' => $param['only_comm']
 				]));
 			}
 		}

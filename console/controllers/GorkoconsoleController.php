@@ -19,6 +19,7 @@ class GorkoconsoleController extends Controller
 				'subdomens' 	=> true,
 				'subdomen' 		=> null,
 				'elasticModel' 	=> 'frontend\modules\gorko_ny\models\ElasticItems',
+				'only_comm'		=> true,
 			]			
 		],
 		'svadbanaprirode' => [
@@ -30,6 +31,7 @@ class GorkoconsoleController extends Controller
 				'subdomens' 	=> false,
 				'subdomen' 		=> null,
 				'elasticModel' 	=> 'frontend\modules\svadbanaprirode\models\ElasticItems',
+				'only_comm'		=> false,
 			]
 		]
 	];
